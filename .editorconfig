@@ -1,0 +1,6 @@
+[*]
+end_of_line = ls
+insert_final_newline = true
+
+[*.go]
+indent_size = 4

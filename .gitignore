@@ -1,0 +1,11 @@
+# Editors
+.vscode
+
+# Builds
+__debug_bin
+__debug_bin.exe
+pdf-service
+pdf-service.exe
+
+# Excess
+tmp
