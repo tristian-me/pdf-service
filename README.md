@@ -23,8 +23,8 @@ The port flag is optional, default is: __8765__.
 ### Flags
 | Flag    | Optional | Default         | Description                                |
 | ------- | :------: | --------------- | ------------------------------------------ |
-| port    | [x]      | 8765            | The port to run the server on              |
-| tmp-dir | [x]      | /tmp/pdf-server | The directory to temporary store the files |
+| port    | [ x ]      | 8765            | The port to run the server on              |
+| tmp-dir | [ x ]      | /tmp/pdf-server | The directory to temporary store the files |
 
 To check that the service is running just do a simple GET request to /.
 
