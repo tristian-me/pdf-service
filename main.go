@@ -4,54 +4,59 @@ import (
 	"flag"
 	"fmt"
 	"log"
-	"net/http"
 	"os"
 	"os/exec"
-	"strconv"
-	"time"
 
-	"github.com/gorilla/handlers"
-	"github.com/gorilla/mux"
-
-	"pdf-service/middleware"
+	"pdf-service/utils"
 	"pdf-service/web"
 )
 
-type cliArgs struct {
-	Port int
+// CliArgs is a simple struct for the CLI Args (flags)
+type CliArgs struct {
+	Port    int
+	TempDir string
 }
+
+// DefaultTempDir is the default temporary directory
+const (
+	DefaultTempDir         = "/tmp/pdf-service"
+	DefaultSecondsInterval = 5
+)
 
 func main() {
 	// Check Chromium path
 	checkChromium()
 
-	// Make tmp dir
-	makeTmpDir()
-
 	// Fetch flags
-	args := cliArgs{}
+	args := CliArgs{}
 	flag.IntVar(&args.Port, "port", 8765, "Command line arguments")
+	flag.StringVar(&args.TempDir, "temp-dir", DefaultTempDir, "The pemparary directory")
 	flag.Parse()
 
 	fmt.Println("Starting PDF Service")
 	fmt.Println("Running on port: ", args.Port)
 
-	// Setuop routes & cors
-	router := setupRouter()
-	cors := setupCORS()
-
-	s := &http.Server{
-		Addr:         ":" + strconv.Itoa(args.Port),
-		Handler:      cors(router),
-		WriteTimeout: 15 * time.Second,
-		ReadTimeout:  15 * time.Second,
+	err := setupDirectories(args)
+	if err != nil {
+		log.Fatal("Cannot create directory, maybe not writable?")
 	}
 
-	log.Fatal(s.ListenAndServe())
+	// Is the event tool for removing
+	go utils.GarbageCollection(args.TempDir, DefaultSecondsInterval)
+
+	web.RunServer(args.Port, args.TempDir)
 }
 
-func makeTmpDir() {
-	_ = os.Mkdir("./tmp", 0666)
+func setupDirectories(args CliArgs) error {
+	var err error
+
+	if args.TempDir == DefaultTempDir {
+		err = os.MkdirAll(DefaultTempDir, 0666)
+	} else {
+		err = os.MkdirAll(args.TempDir, 0666)
+	}
+
+	return err
 }
 
 func checkChromium() {
@@ -59,23 +64,4 @@ func checkChromium() {
 	if err != nil {
 		log.Fatal(err)
 	}
-}
-
-func setupRouter() *mux.Router {
-	router := mux.NewRouter()
-	router.Use(middleware.LoggerMiddleware)
-	router.HandleFunc("/", web.HandleHome).Methods(http.MethodGet)
-	router.HandleFunc("/upload", web.HandleHTMLUpload).Methods(http.MethodPost)
-
-	return router
-}
-
-func setupCORS() func(http.Handler) http.Handler {
-	cors := handlers.CORS(
-		handlers.AllowedHeaders([]string{"X-Request-With", "Content-Type", "Authorization"}),
-		handlers.AllowedMethods([]string{"GET", "POST", "OPTIONS"}),
-		handlers.AllowedOrigins([]string{"*"}),
-	)
-
-	return cors
 }

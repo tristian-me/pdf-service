@@ -11,8 +11,6 @@ import (
 	"pdf-service/utils"
 )
 
-const tmpFolder = "./tmp"
-
 // HandleHTMLUpload handles uploading files
 func HandleHTMLUpload(w http.ResponseWriter, r *http.Request) {
 	var err error
@@ -31,7 +29,7 @@ func HandleHTMLUpload(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	f, err := os.OpenFile(tmpFolder+"/"+handler.Filename, os.O_WRONLY|os.O_CREATE, 0666)
+	f, err := os.OpenFile(TempDir+"/"+handler.Filename, os.O_WRONLY|os.O_CREATE, 0666)
 	if err != nil {
 		utils.RespBadJSON(w, http.StatusConflict, err)
 		return
@@ -49,8 +47,8 @@ func HandleHTMLUpload(w http.ResponseWriter, r *http.Request) {
 	newFilename := utils.RandomString(30) + ".html"
 
 	// Rename the file
-	src := tmpFolder + "/" + handler.Filename
-	dst := tmpFolder + "/" + newFilename
+	src := TempDir + "/" + handler.Filename
+	dst := TempDir + "/" + newFilename
 	err = os.Rename(src, dst)
 	if err != nil {
 		utils.RespBadJSON(w, http.StatusConflict, err)
@@ -65,7 +63,7 @@ func HandleHTMLUpload(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Disposition", "attachment; filename="+newFile)
 	w.Header().Set("Content-Type", "application/octect-stream")
-	http.ServeFile(w, r, tmpFolder+"/"+newFile)
+	http.ServeFile(w, r, TempDir+"/"+newFile)
 }
 
 func checkContentType(handler *multipart.FileHeader) error {
