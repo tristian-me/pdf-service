@@ -17,24 +17,32 @@ import (
 	"pdf-service/web"
 )
 
-type cliArgs struct {
-	Port int
+// CliArgs is a simple struct for the CLI Args (flags)
+type CliArgs struct {
+	Port	int
+	TempDir string
 }
+
+// DefaultTempDir is the default temporary directory
+const DefaultTempDir = "/tmp/pdf-service"
 
 func main() {
 	// Check Chromium path
 	checkChromium()
 
-	// Make tmp dir
-	makeTmpDir()
-
 	// Fetch flags
-	args := cliArgs{}
+	args := CliArgs{}
 	flag.IntVar(&args.Port, "port", 8765, "Command line arguments")
+	flag.StringVar(&args.TempDir, "temp-dir", DefaultTempDir, "The pemparary directory")
 	flag.Parse()
 
 	fmt.Println("Starting PDF Service")
 	fmt.Println("Running on port: ", args.Port)
+
+	err := setupDirectories(args)
+	if err != nil {
+		log.Fatal("Cannot create directory, maybe not writable?")
+	}
 
 	// Setuop routes & cors
 	router := setupRouter()
@@ -50,8 +58,16 @@ func main() {
 	log.Fatal(s.ListenAndServe())
 }
 
-func makeTmpDir() {
-	_ = os.Mkdir("./tmp", 0666)
+func setupDirectories(args CliArgs) error {
+	var err error
+
+	if args.TempDir == DefaultTempDir {
+		err = os.MkdirAll(DefaultTempDir, os.ModePerm)
+	} else {
+		err = os.Mkdir(args.TempDir, os.ModePerm)
+	}
+
+	return err
 }
 
 func checkChromium() {
