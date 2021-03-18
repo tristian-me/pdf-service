@@ -17,16 +17,29 @@ go build
 ## Usage
 The port flag is optional, default is: __8765__.
 ```shell
-./pdf-service --port=8765 &
+./pdf-service &
 ```
+
+### Flags
+| Flag    | Optional | Default         | Description                                |
+| ------- | :------: | --------------- | ------------------------------------------ |
+| port    | [x]      | 8765            | The port to run the server on              |
+| tmp-dir | [x]      | /tmp/pdf-server | The directory to temporary store the files |
 
 To check that the service is running just do a simple GET request to /.
 
 To upload a HTML document via `POST /upload`
 
+## API Routes
+These are the API routes that are currently accepted. 
+
+| Method  | Path    | Response | Params               | Descriptiuon |
+| ------- | ------- | -------- | -------------------- | ------------ |
+| GET     | /       | JSON     |                      | Just shows that the server is running. Useful for pinging to check its alive. |
+| POST    | /upload | BINARY   | file=_document.html_ | The actual file upload. It will respond with a generated PDF. |
+
 ### Todo
 * Installation guide
 * Unit tests
 * Generating PDFs via URLs which will be useful for another usecase
-* Garbage collection (removal of temporary files)
-* Improve this documentation a little bit.
+* ~~Garbage collection (removal of temporary files)~~
