@@ -4,27 +4,24 @@ import (
 	"flag"
 	"fmt"
 	"log"
-	"net/http"
 	"os"
 	"os/exec"
-	"strconv"
-	"time"
 
-	"github.com/gorilla/handlers"
-	"github.com/gorilla/mux"
-
-	"pdf-service/middleware"
+	"pdf-service/utils"
 	"pdf-service/web"
 )
 
 // CliArgs is a simple struct for the CLI Args (flags)
 type CliArgs struct {
-	Port	int
+	Port    int
 	TempDir string
 }
 
 // DefaultTempDir is the default temporary directory
-const DefaultTempDir = "/tmp/pdf-service"
+const (
+	DefaultTempDir         = "/tmp/pdf-service"
+	DefaultSecondsInterval = 5
+)
 
 func main() {
 	// Check Chromium path
@@ -44,27 +41,19 @@ func main() {
 		log.Fatal("Cannot create directory, maybe not writable?")
 	}
 
-	// Setuop routes & cors
-	router := setupRouter()
-	cors := setupCORS()
+	// Is the event tool for removing
+	go utils.GarbageCollection(args.TempDir, DefaultSecondsInterval)
 
-	s := &http.Server{
-		Addr:         ":" + strconv.Itoa(args.Port),
-		Handler:      cors(router),
-		WriteTimeout: 15 * time.Second,
-		ReadTimeout:  15 * time.Second,
-	}
-
-	log.Fatal(s.ListenAndServe())
+	web.RunServer(args.Port, args.TempDir)
 }
 
 func setupDirectories(args CliArgs) error {
 	var err error
 
 	if args.TempDir == DefaultTempDir {
-		err = os.MkdirAll(DefaultTempDir, os.ModePerm)
+		err = os.MkdirAll(DefaultTempDir, 0666)
 	} else {
-		err = os.Mkdir(args.TempDir, os.ModePerm)
+		err = os.MkdirAll(args.TempDir, 0666)
 	}
 
 	return err
@@ -75,23 +64,4 @@ func checkChromium() {
 	if err != nil {
 		log.Fatal(err)
 	}
-}
-
-func setupRouter() *mux.Router {
-	router := mux.NewRouter()
-	router.Use(middleware.LoggerMiddleware)
-	router.HandleFunc("/", web.HandleHome).Methods(http.MethodGet)
-	router.HandleFunc("/upload", web.HandleHTMLUpload).Methods(http.MethodPost)
-
-	return router
-}
-
-func setupCORS() func(http.Handler) http.Handler {
-	cors := handlers.CORS(
-		handlers.AllowedHeaders([]string{"X-Request-With", "Content-Type", "Authorization"}),
-		handlers.AllowedMethods([]string{"GET", "POST", "OPTIONS"}),
-		handlers.AllowedOrigins([]string{"*"}),
-	)
-
-	return cors
 }

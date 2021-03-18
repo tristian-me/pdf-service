@@ -29,6 +29,7 @@ func RespJSON(w http.ResponseWriter, code int, message string, data interface{})
 	}
 }
 
+// RespBadJSON retrns a bad JSON response
 func RespBadJSON(w http.ResponseWriter, code int, err error) {
 	resp := make(map[string]interface{})
 	resp["error"] = err.Error()
