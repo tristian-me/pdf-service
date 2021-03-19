@@ -24,7 +24,8 @@ func ConvertFromFile(fileName string) (string, error) {
 	args := []string{
 		chromeExec,
 		"--headless",
-		"--disable-pdf",
+		"--disable-gpu",
+		"--print-to-pdf-no-header"
 		"--print-to-pdf=" + tmpFolder + "/" + newFileName,
 		tmpFolder + "/" + fileName,
 	}

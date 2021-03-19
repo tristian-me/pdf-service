@@ -51,9 +51,9 @@ func setupDirectories(args CliArgs) error {
 	var err error
 
 	if args.TempDir == DefaultTempDir {
-		err = os.MkdirAll(DefaultTempDir, 0666)
+		err = os.MkdirAll(DefaultTempDir, 0777)
 	} else {
-		err = os.MkdirAll(args.TempDir, 0666)
+		err = os.MkdirAll(args.TempDir, 0777)
 	}
 
 	return err
