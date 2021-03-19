@@ -1,5 +1,6 @@
-# Editors
+# Editors + OS crap
 .vscode
+.DS_Store
 
 # Builds
 __debug_bin
